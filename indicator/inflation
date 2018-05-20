@@ -1,0 +1,95 @@
+using cAlgo.API;
+using cAlgo.API.Internals;
+using cAlgo.API.Indicators;
+using cAlgo.Indicators;
+using System;
+
+namespace cAlgo.Indicators
+{
+
+    [Indicator(IsOverlay = true, AccessRights = AccessRights.None)]
+    public class customMovingAverageTriple : Indicator
+    {
+        // [Parameter("Price Type: (0)=Typical (OHLC) , (1)=WClose (OHLCC) , (2)=Median (HL)", DefaultValue = 0, MinValue = 0, MaxValue = 2)]
+        public int PriceType { get; set; }
+
+        // [Parameter("MA Type:", DefaultValue = MovingAverageType.Simple)]
+        public MovingAverageType MAType { get; set; }
+
+        [Parameter("Period:", DefaultValue = 365)]
+        public int Period { get; set; }
+
+        [Parameter("inflation:", DefaultValue = 10)]
+        public double inflation { get; set; }
+
+        // マイナス値
+        [Output("Main1", Color = Colors.Red)]
+        public IndicatorDataSeries MAResult1 { get; set; }
+
+        [Output("Main2", Color = Colors.Pink)]
+        public IndicatorDataSeries MAResult2 { get; set; }
+
+        [Output("Main3", Color = Colors.White)]
+        public IndicatorDataSeries MAResult3 { get; set; }
+
+        // 現在
+        [Output("Main4", Color = Colors.Yellow)]
+        public IndicatorDataSeries MAResult4 { get; set; }
+
+        // プラス値
+        [Output("Main5", Color = Colors.White)]
+        public IndicatorDataSeries MAResult5 { get; set; }
+
+        [Output("Main6", Color = Colors.Pink)]
+        public IndicatorDataSeries MAResult6 { get; set; }
+
+        [Output("Main7", Color = Colors.Red)]
+        public IndicatorDataSeries MAResult7 { get; set; }
+
+        private MovingAverage movingAverage;
+
+        private IndicatorDataSeries dataSeries;
+
+        protected override void Initialize()
+        {
+            dataSeries = CreateDataSeries();
+            MAType = MovingAverageType.Simple;
+            movingAverage = Indicators.MovingAverage(dataSeries, Period, MAType);
+        }
+
+        public override void Calculate(int index)
+        {
+            if (PriceType == 0)
+            {
+                dataSeries[index] = (MarketSeries.Open[index] + MarketSeries.High[index] + MarketSeries.Low[index] + MarketSeries.Close[index]) / 4;
+            }
+
+
+            else if (PriceType == 1)
+            {
+                dataSeries[index] = (MarketSeries.Open[index] + MarketSeries.High[index] + MarketSeries.Low[index] + MarketSeries.Close[index] + MarketSeries.Close[index]) / 5;
+            }
+
+
+            else if (PriceType == 2)
+            {
+                dataSeries[index] = (MarketSeries.High[index] + MarketSeries.Low[index]) / 2;
+            }
+
+            // マイナス値
+            MAResult1[index] = movingAverage.Result[index] - (Math.Abs((movingAverage.Result[index] * inflation) / 100) + Math.Abs((movingAverage.Result[index] * inflation) / 100) + Math.Abs((movingAverage.Result[index] * inflation) / 100));
+            MAResult2[index] = movingAverage.Result[index] - (Math.Abs((movingAverage.Result[index] * inflation) / 100) + Math.Abs((movingAverage.Result[index] * inflation) / 100));
+            MAResult3[index] = movingAverage.Result[index] - (Math.Abs((movingAverage.Result[index] * inflation) / 100));
+
+            // 移動平均
+            MAResult4[index] = movingAverage.Result[index];
+
+            // プラス値
+            MAResult5[index] = movingAverage.Result[index] + Math.Abs((movingAverage.Result[index] * inflation) / 100);
+            MAResult6[index] = movingAverage.Result[index] + Math.Abs((movingAverage.Result[index] * inflation) / 100) + Math.Abs((movingAverage.Result[index] * inflation) / 100);
+            MAResult7[index] = movingAverage.Result[index] + Math.Abs((movingAverage.Result[index] * inflation) / 100) + Math.Abs((movingAverage.Result[index] * inflation) / 100) + Math.Abs((movingAverage.Result[index] * inflation) / 100);
+
+
+        }
+    }
+}
